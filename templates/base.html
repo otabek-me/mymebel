@@ -1,0 +1,175 @@
+{% load static ui %}
+<!DOCTYPE html>
+<html lang="uz" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ SITE_NAME }}{% endblock %}</title>
+
+    <meta name="description" content="{% block meta_description %}Sifatli mebellar — narxini o'zingiz hisoblang va sotuvchi bilan bog'laning.{% endblock %}">
+    <meta name="theme-color" content="#FBF8F3">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{% block og_title %}{{ SITE_NAME }}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Sifatli mebellar — narxini o'zingiz hisoblang.{% endblock %}">
+    <meta property="og:site_name" content="{{ SITE_NAME }}">
+    {% block og_image %}{% endblock %}
+
+    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=optional" rel="stylesheet">
+
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-[#FBF8F3] text-[#1F2421] font-sans antialiased min-h-screen flex flex-col">
+
+    <header id="site-header" class="site-header z-50 {% if request.path == '/' %}site-header--home {% if not hero_slides %}site-header--fallback{% endif %} absolute inset-x-0 top-0{% else %}sticky top-0 bg-[#FBF8F3]/95 shadow-sm{% endif %}">
+        <div class="mx-auto max-w-7xl px-5 sm:px-8">
+            <div class="flex h-[76px] items-center justify-between lg:h-[88px]">
+                <a href="{% url 'shop:home' %}" class="site-brand flex min-w-0 items-center gap-3" aria-label="{{ SITE_NAME }} — bosh sahifa">
+                    {% if SITE_SETTINGS.logo %}
+                    {% if SITE_SETTINGS.logo_medium %}<img src="{{ SITE_SETTINGS.logo_medium.url }}" alt="{{ SITE_NAME }}" width="48" height="48" class="h-11 w-11 rounded-xl object-contain">{% else %}<img src="{{ SITE_SETTINGS.logo.url }}" alt="{{ SITE_NAME }}" width="48" height="48" class="h-11 w-11 rounded-xl object-contain">{% endif %}
+                    {% else %}
+                    <span class="site-mark flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/30 font-display text-xl font-bold">{{ SITE_NAME|first }}</span>
+                    {% endif %}
+                    <span class="truncate font-display text-lg font-bold tracking-tight sm:text-xl">{{ SITE_NAME }}</span>
+                </a>
+
+                <nav class="hidden items-center gap-7 lg:flex" aria-label="Asosiy navigatsiya">
+                    <a href="{% url 'shop:home' %}" {% if request.path == '/' %}aria-current="page"{% endif %} class="site-nav-link">Bosh sahifa</a>
+                    <a href="{% url 'shop:catalog' %}" {% if '/katalog' in request.path %}aria-current="page"{% endif %} class="site-nav-link">Katalog</a>
+                    <a href="{% url 'shop:home' %}#how-it-works" class="site-nav-link">Biz haqimizda</a>
+                    <a href="{% url 'shop:home' %}#contact" class="site-nav-link">Aloqa</a>
+                </nav>
+
+                <div class="hidden items-center gap-5 lg:flex">
+                    {% if SELLER_PHONE %}<a href="tel:{{ SELLER_PHONE|phone_tel }}" class="site-phone text-sm font-semibold">{{ SELLER_PHONE|phone_pretty }}</a>{% endif %}
+                    <a href="{% url 'shop:home' %}#contact" class="site-header-cta inline-flex min-h-11 items-center rounded-full px-5 text-sm font-semibold transition">Bog'lanish</a>
+                </div>
+                <button id="mobile-menu-open" type="button" class="site-menu-button flex h-11 w-11 items-center justify-center rounded-full lg:hidden" aria-label="Menyuni ochish" aria-expanded="false" aria-controls="mobile-menu">
+                    <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" d="M4 7h16M4 12h16M4 17h16"/></svg>
+                </button>
+            </div>
+        </div>
+    </header>
+    <div id="mobile-menu" class="mobile-menu fixed inset-0 z-[60] hidden lg:hidden" aria-hidden="true">
+        <button id="mobile-menu-backdrop" class="mobile-menu-backdrop absolute inset-0" type="button" tabindex="-1" aria-label="Menyuni yopish"></button>
+        <aside class="mobile-menu-panel absolute inset-y-0 right-0 flex w-[88vw] max-w-[360px] flex-col px-5 pb-5 pt-4" role="dialog" aria-modal="true" aria-label="Mobil navigatsiya">
+            <div class="flex h-12 shrink-0 items-center justify-between">
+                <a href="{% url 'shop:home' %}" class="flex min-w-0 items-center gap-3 font-display text-lg font-bold text-[#1F2421]">
+                    {% if SITE_SETTINGS.logo %}{% if SITE_SETTINGS.logo_medium %}<img src="{{ SITE_SETTINGS.logo_medium.url }}" alt="" class="h-10 w-10 rounded-xl object-contain">{% else %}<img src="{{ SITE_SETTINGS.logo.url }}" alt="" class="h-10 w-10 rounded-xl object-contain">{% endif %}{% else %}<span class="site-mark flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#1B4332]/15 bg-white font-display text-lg font-bold text-[#1B4332]">{{ SITE_NAME|first }}</span>{% endif %}
+                    <span class="truncate">{{ SITE_NAME }}</span>
+                </a>
+                <button id="mobile-menu-close" type="button" class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#E9DFCC] bg-white text-[#1F2421]" aria-label="Menyuni yopish">
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" d="m6 6 12 12M18 6 6 18"/></svg>
+                </button>
+            </div>
+            <nav class="mobile-menu-links mt-5 flex flex-1 flex-col" aria-label="Mobil navigatsiya">
+                <a href="{% url 'shop:home' %}" {% if request.path == '/' %}aria-current="page"{% endif %} class="mobile-nav-link">Bosh sahifa</a>
+                <a href="{% url 'shop:catalog' %}" {% if '/katalog' in request.path %}aria-current="page"{% endif %} class="mobile-nav-link">Katalog</a>
+                <a href="{% url 'shop:home' %}#how-it-works" class="mobile-nav-link">Biz haqimizda</a>
+                <a href="{% url 'shop:home' %}#contact" class="mobile-nav-link">Aloqa</a>
+            </nav>
+            <div class="mobile-menu-contact shrink-0 border-t border-[#E9DFCC] pt-4">
+                {% if SELLER_PHONE %}<a href="tel:{{ SELLER_PHONE|phone_tel }}" class="mb-3 block text-base font-semibold text-[#1B4332]">{{ SELLER_PHONE|phone_pretty }}</a>{% endif %}
+                <a href="{% url 'shop:home' %}#contact" class="mobile-menu-contact-cta mb-3 flex h-12 w-full items-center justify-center rounded-xl bg-[#1B4332] px-4 text-base font-semibold text-white">Bog'lanish</a>
+                <div class="flex gap-2">
+                    {% if TELEGRAM_URL %}<a href="{{ TELEGRAM_URL }}" target="_blank" rel="noopener noreferrer" class="mobile-social-link">Telegram</a>{% endif %}
+                    {% if INSTAGRAM_URL %}<a href="{{ INSTAGRAM_URL }}" target="_blank" rel="noopener noreferrer" class="mobile-social-link">Instagram</a>{% endif %}
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full mt-4 space-y-2">
+        {% for message in messages %}
+        <div class="rounded-xl px-4 py-3 text-sm font-medium shadow-sm
+                    {% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200
+                    {% elif message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200
+                    {% else %}bg-sand text-forest-dark border border-wood/20{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main -->
+    <main class="flex-1">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-forest text-cream/90 mt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                <!-- Brand -->
+                <div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <span class="w-10 h-10 rounded-lg bg-wood flex items-center justify-center text-white font-display font-bold text-xl">{{ SITE_NAME|first }}</span>
+                        <span class="font-display font-bold text-xl text-cream">{{ SITE_NAME }}</span>
+                    </div>
+                    <p class="text-sm text-cream/70 leading-relaxed max-w-xs">
+                        Sifatli va zamonaviy mebellar. O'lchamingizga moslab yasab beramiz. Narxini o'zingiz hisoblab, biz bilan bog'laning.
+                    </p>
+                </div>
+
+                <!-- Links -->
+                <div>
+                    <h3 class="font-display font-semibold text-lg text-cream mb-4">Sahifalar</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="{% url 'shop:home' %}" class="hover:text-wood transition">Bosh sahifa</a></li>
+                        <li><a href="{% url 'shop:catalog' %}" class="hover:text-wood transition">Katalog</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact -->
+                <div>
+                    <h3 class="font-display font-semibold text-lg text-cream mb-4">Bog'lanish</h3>
+                    <div class="space-y-3">
+                        {% if SELLER_PHONE %}
+                        <a href="tel:{{ SELLER_PHONE|phone_tel }}" class="flex items-center gap-3 text-sm hover:text-wood transition">
+                            <svg class="w-5 h-5 text-wood" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"/></svg>
+                            {{ SELLER_PHONE|phone_pretty }}
+                        </a>
+                        {% endif %}
+
+                        <!-- Ijtimoiy tarmoqlar (faqat .env da qiymat bo'lsa ko'rinadi) -->
+                        <div class="flex gap-3 pt-1">
+                            {% if TELEGRAM_URL %}
+                            <a href="{{ TELEGRAM_URL }}" target="_blank" rel="noopener"
+                               class="w-11 h-11 rounded-full bg-white/10 hover:bg-wood hover:text-white flex items-center justify-center transition"
+                               aria-label="Telegram">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+                            </a>
+                            {% endif %}
+                            {% if INSTAGRAM_URL %}
+                            <a href="{{ INSTAGRAM_URL }}" target="_blank" rel="noopener"
+                               class="w-11 h-11 rounded-full bg-white/10 hover:bg-wood hover:text-white flex items-center justify-center transition"
+                               aria-label="Instagram">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-white/10 mt-10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-3 text-sm text-cream/60">
+                <p>&copy; {% now "Y" %} {{ SITE_NAME }}. Barcha huquqlar himoyalangan.</p>
+                <a href="{% url 'panel:login' %}" class="hover:text-wood transition">Administrator kirishi</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

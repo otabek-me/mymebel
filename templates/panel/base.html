@@ -1,0 +1,153 @@
+{% load static %}
+<!doctype html>
+<html lang="uz">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>{% block title %}Panel{% endblock %} | {{ SITE_NAME }}</title>
+    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="min-h-screen bg-cream text-forest-dark">
+<div class="min-h-screen lg:flex">
+    <aside class="hidden w-64 shrink-0 flex-col bg-forest text-white lg:flex">
+        <a href="{% url 'panel:dashboard' %}" class="flex h-20 items-center gap-3 border-b border-white/10 px-6">
+            <span class="panel-brand-mark flex h-10 w-10 items-center justify-center rounded-xl font-display text-xl font-bold">{{ SITE_NAME|first }}</span>
+            <span class="font-display text-lg font-bold">{{ SITE_NAME }}</span>
+        </a>
+        <nav class="flex-1 space-y-1 px-3 py-6">
+            <a href="{% url 'panel:dashboard' %}" class="panel-nav-link flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium hover:bg-white/10 {% if request.resolver_match.url_name == 'dashboard' %}panel-nav-active{% endif %}">Dashboard</a>
+            <a href="{% url 'panel:hero_slide_list' %}" class="panel-nav-link flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium hover:bg-white/10 {% if 'hero_slide' in request.resolver_match.url_name %}panel-nav-active{% endif %}">Bosh sahifa bannerlari</a>
+            <a href="{% url 'panel:furniture_list' %}" class="panel-nav-link flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium hover:bg-white/10 {% if 'furniture' in request.resolver_match.url_name %}panel-nav-active{% endif %}">Mebellar</a>
+            <a href="{% url 'panel:category_list' %}" class="panel-nav-link flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium hover:bg-white/10 {% if 'category' in request.resolver_match.url_name %}panel-nav-active{% endif %}">Kategoriyalar</a>
+            <a href="{% url 'panel:material_list' %}" class="panel-nav-link flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium hover:bg-white/10 {% if 'material' in request.resolver_match.url_name %}panel-nav-active{% endif %}">Materiallar</a>
+            <a href="{% url 'panel:inquiry_list' %}" class="panel-nav-link flex items-center justify-between rounded-xl px-4 py-3 text-sm font-medium hover:bg-white/10 {% if 'inquiry' in request.resolver_match.url_name %}panel-nav-active{% endif %}">
+                <span>Buyurtmalar</span><span id="unseen-badge" class="{% if not panel_unseen_count %}hidden{% endif %} min-w-6 rounded-full bg-red-500 px-2 py-0.5 text-center text-xs font-bold text-white">{{ panel_unseen_count }}</span>
+            </a>
+        </nav>
+        <div class="border-t border-white/10 p-4">
+            <p class="truncate px-3 pb-3 text-xs text-white/55">{{ request.user.get_username }}</p>
+            <form method="post" action="{% url 'panel:logout' %}">{% csrf_token %}<button class="w-full rounded-xl px-4 py-3 text-left text-sm text-white/80 hover:bg-white/10">Chiqish</button></form>
+        </div>
+    </aside>
+    <div class="min-w-0 flex-1">
+        <header class="sticky top-0 z-30 flex items-center justify-between border-b border-wood/10 bg-white/90 px-4 py-3 backdrop-blur sm:px-7 lg:px-10">
+            <div class="flex items-center gap-3">
+                <button id="panel-mobile-menu-open" type="button" class="panel-menu-open flex h-11 w-11 items-center justify-center rounded-xl border border-[#E9DFCC] bg-[#FBF8F3] text-[#1B4332] lg:hidden" aria-label="Panel menyusini ochish" aria-expanded="false" aria-controls="panel-mobile-menu">
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" d="M4 7h16M4 12h16M4 17h16"/></svg>
+                </button>
+                <a class="font-display font-bold text-forest lg:hidden" href="{% url 'panel:dashboard' %}">{{ SITE_NAME }}</a>
+                <span class="hidden text-sm text-forest-dark/50 lg:inline">Boshqaruv paneli</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="{% url 'shop:home' %}" target="_blank" rel="noopener" class="text-sm font-medium text-forest hover:text-wood">Saytni ko'rish ↗</a>
+                <span class="lg:hidden rounded-full bg-sand px-3 py-1 text-xs font-semibold">{{ panel_unseen_count }} yangi</span>
+            </div>
+        </header>
+        <main class="panel-content mx-auto max-w-7xl px-4 py-7 sm:px-7 lg:px-10 lg:py-10">
+            {% if messages %}<div class="mb-6 space-y-2" aria-live="polite">{% for message in messages %}<div class="rounded-xl border px-4 py-3 text-sm {% if message.tags == 'error' %}border-red-200 bg-red-50 text-red-800{% elif message.tags == 'success' %}border-green-200 bg-green-50 text-green-800{% else %}border-wood/15 bg-white text-forest-dark{% endif %}">{{ message }}</div>{% endfor %}</div>{% endif %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</div>
+<div id="panel-mobile-menu" class="panel-mobile-menu lg:hidden" aria-hidden="true">
+    <button id="panel-mobile-menu-backdrop" class="panel-mobile-backdrop" type="button" tabindex="-1" aria-label="Menyuni yopish"></button>
+    <aside class="panel-mobile-drawer" role="dialog" aria-modal="true" aria-label="Panel navigatsiyasi">
+        <div class="flex h-12 items-center justify-between border-b border-[#E9DFCC] px-5">
+            <span class="font-display text-lg font-bold text-[#1F2421]">Boshqaruv paneli</span>
+            <button id="panel-mobile-menu-close" type="button" class="flex h-11 w-11 items-center justify-center rounded-xl border border-[#E9DFCC] bg-white text-[#1F2421]" aria-label="Menyuni yopish">✕</button>
+        </div>
+        <nav class="panel-mobile-links flex-1 px-5 py-3" aria-label="Panel navigatsiyasi">
+            <a href="{% url 'panel:dashboard' %}" class="panel-mobile-link {% if request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}">Dashboard</a>
+            <a href="{% url 'panel:hero_slide_list' %}" class="panel-mobile-link {% if 'hero_slide' in request.resolver_match.url_name %}is-active{% endif %}">Bosh sahifa bannerlari</a>
+            <a href="{% url 'panel:furniture_list' %}" class="panel-mobile-link {% if 'furniture' in request.resolver_match.url_name %}is-active{% endif %}">Mebellar</a>
+            <a href="{% url 'panel:category_list' %}" class="panel-mobile-link {% if 'category' in request.resolver_match.url_name %}is-active{% endif %}">Kategoriyalar</a>
+            <a href="{% url 'panel:material_list' %}" class="panel-mobile-link {% if 'material' in request.resolver_match.url_name %}is-active{% endif %}">Materiallar</a>
+            <a href="{% url 'panel:inquiry_list' %}" class="panel-mobile-link flex items-center justify-between {% if 'inquiry' in request.resolver_match.url_name %}is-active{% endif %}">Murojaatlar <span id="unseen-badge-mobile" class="{% if not panel_unseen_count %}hidden{% endif %} rounded-full bg-red-600 px-2 py-0.5 text-xs text-white">{{ panel_unseen_count }}</span></a>
+        </nav>
+        <div class="border-t border-[#E9DFCC] px-5 py-4">
+            <a href="{% url 'shop:home' %}" target="_blank" rel="noopener" class="mb-3 block text-base font-medium text-[#1B4332]">Saytni ko'rish ↗</a>
+            <p class="mb-3 truncate text-sm text-[#6B746E]">{{ request.user.get_username }}</p>
+            <form method="post" action="{% url 'panel:logout' %}">{% csrf_token %}<button class="h-12 w-full rounded-xl bg-[#1B4332] px-4 text-left text-base font-semibold text-white hover:bg-[#143225]">Chiqish</button></form>
+        </div>
+    </aside>
+</div>
+<div id="panel-toast" class="pointer-events-none fixed right-4 top-4 z-50 hidden w-[min(24rem,calc(100vw-2rem))] rounded-2xl border border-green-200 bg-white p-4 shadow-2xl" role="status" aria-live="polite">
+    <p class="text-xs font-bold uppercase tracking-wider text-green-700">Yangi murojaat</p><p id="panel-toast-text" class="mt-1 text-sm font-medium text-forest-dark"></p>
+</div>
+<script>
+(function(){
+    const endpoint="{% url 'panel:api_notifications' %}";
+    const badge=document.getElementById('unseen-badge');
+    const mobileBadge=document.getElementById('unseen-badge-mobile');
+    const toast=document.getElementById('panel-toast');
+    const toastText=document.getElementById('panel-toast-text');
+    let latestId="{{ panel_latest_inquiry_id|default:'' }}";
+    let initialized=Boolean(latestId);
+    async function poll(){
+        try{
+            const response=await fetch(endpoint+"?last_id="+encodeURIComponent(latestId),{headers:{'X-Requested-With':'XMLHttpRequest'},cache:'no-store'});
+            if(!response.ok)return;
+            const data=await response.json();
+            if(badge){badge.textContent=data.count;badge.classList.toggle('hidden',!data.count);}
+            if(mobileBadge){mobileBadge.textContent=data.count;mobileBadge.classList.toggle('hidden',!data.count);}
+            if(data.latest_id){
+                if(initialized&&String(data.latest_id)!==String(latestId)&&data.has_new&&data.items.length){
+                    const item=data.items[0];
+                    toastText.textContent=item.phone+" — "+item.furniture;
+                    toast.classList.remove('hidden');
+                    window.setTimeout(()=>toast.classList.add('hidden'),7000);
+                }
+                latestId=String(data.latest_id);
+                initialized=true;
+            }
+        }catch(error){console.warn('Bildirishnomalarni tekshirib bo‘lmadi:',error);}
+    }
+    window.setInterval(poll,10000);
+    window.addEventListener('focus',poll);
+})();
+</script>
+<script>
+(function(){
+    const drawer=document.getElementById('panel-mobile-menu');
+    const openButton=document.getElementById('panel-mobile-menu-open');
+    const closeButton=document.getElementById('panel-mobile-menu-close');
+    const backdrop=document.getElementById('panel-mobile-menu-backdrop');
+    if(!drawer||!openButton||!closeButton||!backdrop)return;
+    let hideTimer=null;
+    function setOpen(open){
+        window.clearTimeout(hideTimer);
+        if(open){
+            drawer.classList.add('is-visible');
+            window.requestAnimationFrame(()=>drawer.classList.add('is-open'));
+            drawer.setAttribute('aria-hidden','false');
+            document.body.classList.add('overflow-hidden');
+            openButton.setAttribute('aria-expanded','true');
+            closeButton.focus();
+        }else{
+            drawer.classList.remove('is-open');
+            drawer.setAttribute('aria-hidden','true');
+            document.body.classList.remove('overflow-hidden');
+            openButton.setAttribute('aria-expanded','false');
+            openButton.focus();
+            hideTimer=window.setTimeout(()=>drawer.classList.remove('is-visible'),250);
+        }
+    }
+    openButton.addEventListener('click',()=>setOpen(true));
+    closeButton.addEventListener('click',()=>setOpen(false));
+    backdrop.addEventListener('click',()=>setOpen(false));
+    drawer.querySelectorAll('.panel-mobile-link').forEach(link=>link.addEventListener('click',()=>setOpen(false)));
+    drawer.addEventListener('keydown',event=>{
+        if(event.key==='Escape'){event.preventDefault();setOpen(false);return;}
+        if(event.key!=='Tab')return;
+        const items=[...drawer.querySelectorAll('.panel-mobile-drawer a[href],.panel-mobile-drawer button:not([disabled])')];
+        if(!items.length)return;
+        if(event.shiftKey&&document.activeElement===items[0]){event.preventDefault();items[items.length-1].focus();}
+        else if(!event.shiftKey&&document.activeElement===items[items.length-1]){event.preventDefault();items[0].focus();}
+    });
+})();
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

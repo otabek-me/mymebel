@@ -1,0 +1,47 @@
+{% extends 'panel/base.html' %}
+{% block title %}Bosh sahifa bannerlari{% endblock %}
+{% block content %}
+<div class="mb-7 flex flex-wrap items-end justify-between gap-4">
+    <div><p class="text-xs font-semibold uppercase tracking-[.16em] text-wood">Sayt ko'rinishi</p><h1 class="mt-2 font-display text-3xl font-bold">Bosh sahifa bannerlari</h1><p class="mt-2 max-w-xl text-sm text-forest-dark/60">Hero karuselini, logotipni va bosh sahifadagi ishonch ma'lumotlarini boshqaring.</p></div>
+    <a href="{% url 'panel:hero_slide_add' %}" class="inline-flex min-h-12 items-center justify-center rounded-xl bg-forest px-5 font-semibold text-white hover:bg-forest-light">+ Banner qo'shish</a>
+</div>
+
+{% if not slides %}<div class="mb-6 rounded-2xl border border-dashed border-wood/30 bg-white p-8 text-center"><p class="font-display text-xl font-semibold">Birinchi bannerni qo'shing</p><p class="mt-2 text-sm text-forest-dark/60">Gorizontal mebel suratini yuklab, bosh sahifa uchun sarlavha va havolani belgilang.</p></div>{% endif %}
+
+<section class="mb-8 space-y-3" aria-label="Bannerlar ro'yxati">
+    {% for slide in slides %}
+    <article class="grid gap-4 rounded-2xl border border-wood/10 bg-white p-4 shadow-sm sm:grid-cols-[180px_1fr_auto] sm:items-center">
+        <div class="aspect-[16/9] overflow-hidden rounded-xl bg-sand"><img src="{{ slide.image_medium.url }}" alt="" width="640" height="360" class="h-full w-full object-cover" loading="lazy"></div>
+        <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2"><h2 class="font-display text-lg font-semibold">{{ slide.title }}</h2><span class="rounded-full px-2.5 py-1 text-xs font-semibold {% if slide.is_active %}bg-green-100 text-green-800{% else %}bg-sand text-forest-dark/60{% endif %}">{% if slide.is_active %}Faol{% else %}Nofaol{% endif %}</span></div>
+            <p class="mt-1 line-clamp-2 text-sm text-forest-dark/60">{{ slide.subtitle }}</p>
+            <p class="mt-2 text-xs text-forest-dark/45">Tartib: {{ slide.order }}{% if slide.badge_text %} · {{ slide.badge_text }}{% endif %}</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 sm:justify-end">
+            <form method="post" action="{% url 'panel:hero_slide_move' slide.pk 'up' %}">{% csrf_token %}<button type="submit" class="h-11 min-w-11 rounded-xl border border-wood/15 text-lg hover:bg-sand" aria-label="{{ slide.title }} yuqoriga">◀</button></form>
+            <form method="post" action="{% url 'panel:hero_slide_move' slide.pk 'down' %}">{% csrf_token %}<button type="submit" class="h-11 min-w-11 rounded-xl border border-wood/15 text-lg hover:bg-sand" aria-label="{{ slide.title }} pastga">▶</button></form>
+            <form method="post" action="{% url 'panel:hero_slide_toggle' slide.pk %}">{% csrf_token %}<button class="h-11 rounded-xl border border-forest/20 px-3 text-sm font-semibold text-forest hover:bg-sand">{% if slide.is_active %}Nofaol qilish{% else %}Faollashtirish{% endif %}</button></form>
+            <a href="{% url 'panel:hero_slide_edit' slide.pk %}" class="inline-flex h-11 items-center rounded-xl bg-sand px-4 text-sm font-semibold text-forest">Tahrirlash</a>
+            <a href="{% url 'panel:hero_slide_delete' slide.pk %}" class="inline-flex h-11 items-center rounded-xl border border-red-200 px-4 text-sm font-semibold text-red-700">O'chirish</a>
+        </div>
+    </article>
+    {% endfor %}
+</section>
+
+<section class="rounded-2xl border border-wood/10 bg-white p-5 shadow-sm sm:p-7">
+    <div class="mb-5"><h2 class="font-display text-2xl font-semibold">Bosh sahifa sozlamalari</h2><p class="mt-1 text-sm text-forest-dark/60">Fallback hero, logotip, yakuniy aloqa rasmi va ishonch tasmasi matnlari.</p></div>
+    <form method="post" enctype="multipart/form-data" class="space-y-6">{% csrf_token %}
+        <div class="grid gap-4 sm:grid-cols-2">
+            {% for field in settings_form %}
+            <div class="panel-field {% if field.name == 'hero_title' or field.name == 'hero_subtitle' %}sm:col-span-2{% endif %}">
+                <label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-semibold">{{ field.label }}</label>
+                {{ field }}
+                {% for error in field.errors %}<p class="mt-1 text-xs text-red-700">{{ error }}</p>{% endfor %}
+                {% if field.name == 'logo' or field.name == 'hero_image' %}<p class="mt-1 text-xs text-forest-dark/50">JPG, PNG, WEBP yoki HEIC; eng ko'pi 10 MB. Server WEBP formatiga o'tkazadi.</p>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        <div class="flex justify-end"><button class="min-h-12 w-full rounded-xl bg-forest px-6 font-semibold text-white hover:bg-forest-light sm:w-auto">Sozlamalarni saqlash</button></div>
+    </form>
+</section>
+{% endblock %}

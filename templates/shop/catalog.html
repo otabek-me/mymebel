@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load shop_extras %}
+{% block title %}{% if current_category %}{{ current_category.name }} — {% endif %}Katalog | {{ SITE_NAME }}{% endblock %}
+{% block meta_description %}Mebel katalogi: material va narxlarni solishtiring, o'zingizga mosini tanlang.{% endblock %}
+{% block content %}
+<section class="bg-sand/60">
+    <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+        <p class="text-sm font-semibold uppercase tracking-[.18em] text-wood">Bizning kolleksiya</p>
+        <h1 class="mt-2 font-display text-3xl font-bold text-forest-dark sm:text-4xl">{% if current_category %}{{ current_category.name }}{% else %}Mebel katalogi{% endif %}</h1>
+        <p class="mt-3 max-w-2xl text-forest-dark/65">Har bir mebel uchun materialni tanlang va yakuniy narxni oldindan hisoblang.</p>
+    </div>
+</section>
+<section class="mx-auto max-w-7xl px-4 py-9 sm:px-6 lg:px-8">
+    <div class="mb-7 flex flex-col gap-4 rounded-2xl border border-wood/10 bg-white p-4 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+        <nav class="flex gap-2 overflow-x-auto pb-1" aria-label="Kategoriyalar">
+            <a href="{% url 'shop:catalog' %}" class="shrink-0 rounded-full px-4 py-2 text-sm font-medium {% if not current_category %}bg-forest text-white{% else %}bg-sand text-forest hover:bg-sand/70{% endif %}">Barchasi</a>
+            {% for category in categories %}
+                <a href="{% url 'shop:catalog_category' category.slug %}" class="shrink-0 rounded-full px-4 py-2 text-sm font-medium {% if current_category.pk == category.pk %}bg-forest text-white{% else %}bg-sand text-forest hover:bg-sand/70{% endif %}">{{ category.name }}</a>
+            {% endfor %}
+        </nav>
+        <form method="get" class="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto_auto]">
+            <label class="sr-only" for="catalog-search">Mebel qidirish</label>
+            <input id="catalog-search" type="search" name="q" value="{{ query }}" placeholder="Mebel qidirish..." class="min-w-0 rounded-xl border border-wood/20 px-4 py-2.5 text-sm focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/15">
+            {% if current_category %}<input type="hidden" name="category" value="{{ current_category.slug }}">{% endif %}
+            <label class="sr-only" for="catalog-sort">Saralash</label>
+            <select id="catalog-sort" name="sort" class="rounded-xl border border-wood/20 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-forest/15">
+                <option value="new" {% if sort == 'new' %}selected{% endif %}>Eng yangilari</option>
+                <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Arzonidan</option>
+                <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Qimmatidan</option>
+                <option value="name" {% if sort == 'name' %}selected{% endif %}>Nomi bo'yicha</option>
+            </select>
+            <button class="rounded-xl bg-forest px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-forest-light">Qidirish</button>
+        </form>
+    </div>
+    {% if page_obj.object_list %}
+        <div class="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
+            {% for item in page_obj.object_list %}{% include 'shop/_furniture_card.html' with item=item %}{% endfor %}
+        </div>
+        {% if page_obj.paginator.num_pages > 1 %}
+        <nav class="mt-10 flex flex-wrap items-center justify-center gap-2" aria-label="Sahifalar">
+            {% if page_obj.has_previous %}<a class="rounded-xl border border-wood/20 px-4 py-2 text-sm hover:bg-sand" href="?{{ query_string }}&page={{ page_obj.previous_page_number }}">← Oldingi</a>{% endif %}
+            {% for page_number in page_obj.paginator.page_range %}
+                <a class="rounded-xl px-4 py-2 text-sm {% if page_obj.number == page_number %}bg-forest text-white{% else %}border border-wood/20 hover:bg-sand{% endif %}" href="?{{ query_string }}&page={{ page_number }}">{{ page_number }}</a>
+            {% endfor %}
+            {% if page_obj.has_next %}<a class="rounded-xl border border-wood/20 px-4 py-2 text-sm hover:bg-sand" href="?{{ query_string }}&page={{ page_obj.next_page_number }}">Keyingi →</a>{% endif %}
+        </nav>
+        {% endif %}
+    {% else %}
+        <div class="rounded-3xl border border-dashed border-wood/30 bg-white px-6 py-16 text-center">
+            <h2 class="font-display text-2xl font-semibold text-forest-dark">Hozircha mebel topilmadi</h2>
+            <p class="mt-2 text-forest-dark/60">Qidiruv so'zini o'zgartiring yoki boshqa kategoriyani tanlang.</p>
+            <a href="{% url 'shop:catalog' %}" class="mt-6 inline-flex rounded-full bg-forest px-6 py-3 font-semibold text-white hover:bg-forest-light">Katalogga qaytish</a>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

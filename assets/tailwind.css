@@ -1,0 +1,6 @@
+@import "tailwindcss";
+@config "../tailwind.config.js";
+@source "../templates";
+@source "../shop";
+@source "../panel";
+@source "../static/js";

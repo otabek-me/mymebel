@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+{% load static shop_extras %}
+{% block title %}{{ furniture.name }} | {{ SITE_NAME }}{% endblock %}
+{% block meta_description %}{{ furniture.description|truncatechars:155 }}{% endblock %}
+{% block og_title %}{{ furniture.name }} — {{ SITE_NAME }}{% endblock %}
+{% block og_description %}{{ furniture.description|truncatechars:155 }}{% endblock %}
+{% block og_image %}{% with image=furniture.get_main_image %}{% if image %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ image.display_url }}">{% endif %}{% endwith %}{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <nav class="mb-6 text-sm text-forest-dark/55"><a href="{% url 'shop:home' %}" class="hover:text-wood">Bosh sahifa</a><span class="mx-2">/</span><a href="{% url 'shop:catalog_category' furniture.category.slug %}" class="hover:text-wood">{{ furniture.category.name }}</a><span class="mx-2">/</span><span class="text-forest-dark">{{ furniture.name }}</span></nav>
+    <div class="grid gap-9 lg:grid-cols-[1.1fr_.9fr] lg:gap-14">
+        <div>
+            <div class="group relative aspect-[4/3] overflow-hidden rounded-3xl bg-white shadow-sm" id="gallery-main">
+                {% with image=furniture.get_main_image %}
+                    {% if image %}
+                        <img id="gallery-image" src="{{ image.display_url }}" alt="{{ furniture.name }}" class="img-contain cursor-zoom-in bg-white" data-full="{{ image.display_url }}" loading="eager">
+                        <button type="button" class="absolute bottom-4 right-4 rounded-full bg-forest/85 px-4 py-2 text-sm font-medium text-white" onclick="openLightbox(document.getElementById('gallery-image').dataset.full)">Kattalashtirish</button>
+                    {% else %}
+                        <div class="flex h-full items-center justify-center bg-sand text-forest/30"><span>Rasm hozircha mavjud emas</span></div>
+                    {% endif %}
+                {% endwith %}
+            </div>
+            {% if furniture.images.all %}
+            <div class="mt-3 flex gap-3 overflow-x-auto pb-2" id="gallery-thumbnails" aria-label="Mebel rasmlari">
+                {% for image in furniture.images.all %}
+                <button type="button" class="gallery-thumb h-20 w-24 shrink-0 overflow-hidden rounded-xl border-2 border-transparent bg-white focus:border-forest" data-full="{{ image.display_url }}" data-medium="{{ image.medium_url }}" aria-label="{{ furniture.name }} rasmi {{ forloop.counter }}">
+                    <img src="{{ image.thumb_url }}" alt="" class="img-cover">
+                </button>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        <div>
+            <span class="inline-flex rounded-full bg-sand px-3 py-1 text-xs font-semibold uppercase tracking-wide text-wood">{{ furniture.category.name }}</span>
+            <h1 class="mt-4 font-display text-3xl font-bold leading-tight text-forest-dark sm:text-4xl">{{ furniture.name }}</h1>
+            <p class="mt-5 whitespace-pre-line leading-7 text-forest-dark/70">{{ furniture.description }}</p>
+            <div class="mt-5 rounded-2xl bg-white p-4">
+                <p class="text-xs font-semibold uppercase tracking-wide text-forest-dark/45">O'lchamlari</p>
+                <p class="mt-1 text-lg font-semibold text-forest-dark">{{ furniture.get_dimensions_display }}</p>
+            </div>
+
+            <div class="mt-7">
+                <h2 class="font-display text-xl font-semibold text-forest-dark">Materialni tanlang</h2>
+                {% if materials %}
+                <div class="mt-3 grid gap-3 sm:grid-cols-2" id="material-options">
+                    {% for option in materials %}
+                    <label class="material-card relative flex cursor-pointer items-center gap-3 rounded-2xl border border-wood/15 bg-white p-4 has-[:checked]:border-forest has-[:checked]:bg-forest/5 has-[:checked]:ring-2 has-[:checked]:ring-forest/10">
+                        <input type="radio" name="material_choice" value="{{ option.pk }}" data-price="{{ option.price }}" data-label="{{ option.material.name }}" class="accent-forest" {% if forloop.first %}checked{% endif %}>
+                        <span class="min-w-0 flex-1"><span class="block font-semibold text-forest-dark">{{ option.material.name }}</span><span class="mt-1 block text-sm text-forest-dark/55">Material narxi</span></span>
+                        <span class="whitespace-nowrap text-right text-sm font-bold text-wood">{{ option.price|som }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="mt-3 rounded-xl bg-amber-50 p-4 text-sm text-amber-900">Bu mebel uchun narxlar tez orada qo'shiladi. Telefon orqali bog'laning.</p>
+                {% endif %}
+            </div>
+
+            {% if details %}
+            <div class="mt-7">
+                <h2 class="font-display text-xl font-semibold text-forest-dark">Qo'shimcha detallar</h2>
+                <div class="mt-3 space-y-2">
+                    {% for detail in details %}
+                    <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-wood/10 bg-white px-4 py-3">
+                        <input type="checkbox" name="detail_choice" value="{{ detail.pk }}" data-price="{{ detail.price }}" data-label="{{ detail.name }}" class="h-4 w-4 accent-forest">
+                        <span class="flex-1 text-sm font-medium text-forest-dark">{{ detail.name }}</span>
+                        <span class="text-sm font-semibold text-wood">+ {{ detail.price|som }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="sticky bottom-3 z-20 mt-7 rounded-2xl border border-wood/10 bg-white/95 p-4 shadow-xl backdrop-blur sm:static sm:p-5">
+                <div class="flex items-end justify-between gap-4">
+                    <div><p class="text-sm text-forest-dark/55">Jami hisob-kitob</p><p id="total-price" class="mt-1 font-display text-2xl font-bold text-forest-dark">—</p></div>
+                    <span class="text-right text-xs text-forest-dark/45">Yakuniy narxni<br>sotuvchi tasdiqlaydi</span>
+                </div>
+                <button id="contact-seller" type="button" class="mt-4 w-full rounded-xl bg-forest px-5 py-4 font-semibold text-white shadow-md transition hover:bg-forest-light disabled:cursor-not-allowed disabled:opacity-50" {% if not materials %}disabled{% endif %}>Sotuvchi bilan bog'lanish</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div id="inquiry-modal" class="fixed inset-0 z-[60] hidden items-center justify-center overflow-y-auto bg-forest-dark/70 p-4" role="dialog" aria-modal="true" aria-labelledby="inquiry-title">
+    <div class="my-auto w-full max-w-lg rounded-3xl bg-cream p-6 shadow-2xl sm:p-8">
+        <div class="flex items-start justify-between gap-4">
+            <div><p class="text-sm font-semibold uppercase tracking-wide text-wood">Murojaat yuborish</p><h2 id="inquiry-title" class="mt-1 font-display text-2xl font-bold text-forest-dark">Siz bilan bog'lanamiz</h2></div>
+            <button type="button" class="rounded-full p-2 text-forest-dark/60 hover:bg-sand" onclick="closeInquiryModal()" aria-label="Yopish">✕</button>
+        </div>
+        <div id="inquiry-summary" class="mt-5 rounded-2xl bg-white p-4 text-sm leading-6 text-forest-dark"></div>
+        <form id="inquiry-form" class="mt-5 space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="furniture_id" value="{{ furniture.pk }}">
+            <input type="hidden" name="material_id" id="inquiry-material-id">
+            <div id="inquiry-detail-inputs"></div>
+            <div class="absolute -left-[10000px] h-px w-px overflow-hidden" aria-hidden="true"><label>Sayt<input name="website" tabindex="-1" autocomplete="off"></label></div>
+            <label class="block text-sm font-medium text-forest-dark" for="customer-phone">Telefon raqamingiz <span class="text-red-600">*</span>
+                <input id="customer-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+998 __ ___ __ __" required class="mt-2 w-full rounded-xl border border-wood/20 bg-white px-4 py-3 text-base focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/15">
+            </label>
+            <label class="block text-sm font-medium text-forest-dark" for="customer-name">Ismingiz <span class="font-normal text-forest-dark/45">(ixtiyoriy)</span>
+                <input id="customer-name" name="customer_name" maxlength="100" autocomplete="name" class="mt-2 w-full rounded-xl border border-wood/20 bg-white px-4 py-3 focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/15">
+            </label>
+            <p id="inquiry-error" class="hidden rounded-xl bg-red-50 p-3 text-sm text-red-800" role="alert"></p>
+            <p id="inquiry-success" class="hidden rounded-xl bg-green-50 p-4 text-sm font-semibold text-green-800" role="status">Rahmat! Sotuvchi tez orada siz bilan bog'lanadi.</p>
+            <button id="inquiry-submit" type="submit" class="w-full rounded-xl bg-forest px-5 py-3.5 font-bold text-white transition hover:bg-forest-dark">Yuborish</button>
+            <p class="text-center text-xs text-forest-dark/45">Bu murojaat xarid majburiyatini yuklamaydi.</p>
+        </form>
+    </div>
+</div>
+
+<div id="lightbox" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/90 p-4" role="dialog" aria-modal="true" aria-label="Rasmni kattalashtirilgan ko'rinishi" onclick="closeLightbox()">
+    <button type="button" class="absolute right-5 top-5 rounded-full bg-white/15 px-4 py-2 text-xl text-white" aria-label="Yopish">✕</button>
+    <img class="lightbox-img" alt="{{ furniture.name }}" onclick="event.stopPropagation()">
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+    const pricing = {{ pricing_data|safe }};
+    const total = document.getElementById('total-price');
+    const radios = [...document.querySelectorAll('input[name="material_choice"]')];
+    const checks = [...document.querySelectorAll('input[name="detail_choice"]')];
+    const modal = document.getElementById('inquiry-modal');
+    const phone = document.getElementById('customer-phone');
+    const form = document.getElementById('inquiry-form');
+    const fmt = value => `${Math.round(value).toLocaleString('ru-RU').replace(/\u00a0/g, ' ')} so'm`;
+    let selectedTotal = 0;
+
+    function updatePrice() {
+        const material = radios.find(item => item.checked);
+        selectedTotal = material ? Number(pricing.materials[material.value] || 0) : 0;
+        checks.filter(item => item.checked).forEach(item => { selectedTotal += Number(pricing.details[item.value] || 0); });
+        total.textContent = fmt(selectedTotal);
+    }
+    radios.concat(checks).forEach(item => item.addEventListener('change', updatePrice));
+    updatePrice();
+
+    document.querySelectorAll('#gallery-thumbnails button').forEach(button => {
+        button.addEventListener('click', () => {
+            const image = document.getElementById('gallery-image');
+            if (image) { image.src = button.dataset.medium; image.dataset.full = button.dataset.full; }
+        });
+    });
+    const gallery = document.getElementById('gallery-main');
+    if (gallery) {
+        let startX = 0;
+        gallery.addEventListener('touchstart', event => { startX = event.changedTouches[0].screenX; }, {passive: true});
+        gallery.addEventListener('touchend', event => {
+            const delta = event.changedTouches[0].screenX - startX;
+            const thumbs = [...document.querySelectorAll('#gallery-thumbnails button')];
+            if (Math.abs(delta) < 40 || !thumbs.length) return;
+            const current = thumbs.findIndex(item => item.dataset.full === document.getElementById('gallery-image').dataset.full);
+            const next = (current + (delta < 0 ? 1 : -1) + thumbs.length) % thumbs.length;
+            thumbs[next].click();
+        }, {passive: true});
+    }
+
+    window.closeInquiryModal = function () { modal.classList.add('hidden'); modal.classList.remove('flex'); document.body.style.overflow = ''; };
+    document.getElementById('contact-seller').addEventListener('click', () => {
+        const material = radios.find(item => item.checked);
+        if (!material) return;
+        document.getElementById('inquiry-material-id').value = material.value;
+        const chosenDetails = checks.filter(item => item.checked);
+        document.getElementById('inquiry-detail-inputs').innerHTML = chosenDetails.map(item => `<input type="hidden" name="details" value="${item.value}">`).join('');
+        const summary = document.getElementById('inquiry-summary');
+        summary.innerHTML = '';
+        [
+            ['Mebel', '{{ furniture.name|escapejs }}'],
+            ['Material', material.dataset.label],
+            ['Detallar', chosenDetails.length ? chosenDetails.map(item => item.dataset.label).join(', ') : 'Tanlanmadi'],
+            ['Jami', fmt(selectedTotal)]
+        ].forEach(([label, value]) => {
+            const row = document.createElement('p');
+            const strong = document.createElement('strong');
+            strong.textContent = `${label}: `;
+            row.append(strong, document.createTextNode(value));
+            summary.append(row);
+        });
+        document.getElementById('inquiry-error').classList.add('hidden');
+        document.getElementById('inquiry-success').classList.add('hidden');
+        document.getElementById('inquiry-submit').classList.remove('hidden');
+        modal.classList.remove('hidden'); modal.classList.add('flex'); document.body.style.overflow = 'hidden';
+        phone.focus();
+    });
+    if (window.attachPhoneMask) window.attachPhoneMask(phone);
+    form.addEventListener('submit', async event => {
+        event.preventDefault();
+        const button = document.getElementById('inquiry-submit');
+        const error = document.getElementById('inquiry-error');
+        button.disabled = true;
+        button.textContent = 'Yuborilmoqda...';
+        error.classList.add('hidden');
+        try {
+            const response = await fetch("{% url 'shop:create_inquiry' %}", {
+                method: 'POST',
+                body: new FormData(form),
+                headers: {'X-Requested-With': 'XMLHttpRequest'}
+            });
+            const data = await response.json();
+            if (!response.ok || !data.ok) throw new Error(data.error || 'Yuborishda xatolik yuz berdi.');
+            document.getElementById('inquiry-success').classList.remove('hidden');
+            button.classList.add('hidden');
+            form.querySelectorAll('input').forEach(input => { if (input.type !== 'hidden' && input.name !== 'csrfmiddlewaretoken') input.disabled = true; });
+        } catch (exception) {
+            error.textContent = exception.message;
+            error.classList.remove('hidden');
+        } finally {
+            button.disabled = false;
+            button.textContent = 'Yuborish';
+        }
+    });
+})();
+</script>
+{% endblock %}

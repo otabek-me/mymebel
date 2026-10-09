@@ -1,0 +1,152 @@
+{% extends 'panel/base.html' %}
+{% block title %}{% if slide %}Bannerni tahrirlash{% else %}Banner qo'shish{% endif %}{% endblock %}
+{% block content %}
+<div class="mb-7"><a href="{% url 'panel:hero_slide_list' %}" class="text-sm font-semibold text-wood">← Bosh sahifa bannerlariga qaytish</a><h1 class="mt-3 font-display text-3xl font-bold">{% if slide %}Bannerni tahrirlash{% else %}Yangi banner{% endif %}</h1></div>
+<form id="hero-slide-form" method="post" enctype="multipart/form-data" class="space-y-6">{% csrf_token %}
+    {% if form.non_field_errors %}<div class="rounded-xl bg-red-50 p-4 text-sm text-red-800">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(320px,.85fr)]">
+        <div class="space-y-6">
+            <section class="space-y-5 rounded-2xl border border-wood/10 bg-white p-5 shadow-sm sm:p-7">
+                <div><h2 class="font-display text-xl font-semibold">Rasmlar va fokus nuqtasi</h2><p class="mt-2 rounded-xl bg-sand p-3 text-sm leading-6 text-forest-dark/75">Gorizontal, kamida 1920×1000, mebel bir tomonda, ikkinchi tomonda matn uchun bo'sh joy. JPG, PNG, WEBP yoki HEIC, 10 MB gacha.</p></div>
+                {% for field in form %}
+                    {% if field.name == 'image' or field.name == 'image_mobile' %}
+                    <div class="panel-field"><label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-semibold">{{ field.label }}{% if field.name == 'image_mobile' %} (ixtiyoriy){% endif %}</label>{{ field }}
+                        {% for error in field.errors %}<p class="mt-1 text-xs text-red-700">{{ error }}</p>{% endfor %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div class="panel-field"><label for="{{ form.focus_x.id_for_label }}" class="mb-2 block text-sm font-semibold">Fokus gorizontal (X)</label>{{ form.focus_x }}<p class="mt-1 text-xs text-forest-dark/50">Rasm ustiga bosib fokus nuqtasini belgilang.</p>{% for error in form.focus_x.errors %}<p class="text-xs text-red-700">{{ error }}</p>{% endfor %}</div>
+                    <div class="panel-field"><label for="{{ form.focus_y.id_for_label }}" class="mb-2 block text-sm font-semibold">Fokus vertikal (Y)</label>{{ form.focus_y }}{% for error in form.focus_y.errors %}<p class="text-xs text-red-700">{{ error }}</p>{% endfor %}</div>
+                </div>
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div><p class="mb-2 text-sm font-semibold">Desktop fokusni tanlang</p><button type="button" id="focus-picker" class="focus-picker relative block aspect-[16/9] w-full overflow-hidden rounded-xl bg-gradient-to-br from-[#D9C9AA] to-[#A9744F]" aria-label="Rasmda fokus nuqtasini tanlang">
+                        {% if slide %}<img id="desktop-preview" src="{{ slide.image_medium.url }}" alt="" class="absolute inset-0 h-full w-full object-cover" style="object-position: {{ slide.focus_x }}% {{ slide.focus_y }}%">{% else %}<img id="desktop-preview" alt="" class="absolute inset-0 hidden h-full w-full object-cover">{% endif %}
+                        <span class="absolute inset-0 bg-gradient-to-r from-black/45 to-transparent"></span><span id="focus-marker" class="focus-marker" style="left:{{ slide.focus_x|default:50 }}%;top:{{ slide.focus_y|default:50 }}%"></span>
+                    </button></div>
+                    <div><p class="mb-2 text-sm font-semibold">Mobil rasm preview'i</p><div class="relative aspect-[4/5] overflow-hidden rounded-xl bg-gradient-to-br from-[#D9C9AA] to-[#A9744F]">
+                        {% if slide.image_mobile %}<img id="mobile-preview" src="{{ slide.image_mobile_medium.url }}" alt="" class="absolute inset-0 h-full w-full object-cover" style="object-position: {{ slide.focus_x }}% {{ slide.focus_y }}%">{% else %}<img id="mobile-preview" alt="" class="absolute inset-0 hidden h-full w-full object-cover">{% endif %}
+                        <span class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></span><span class="absolute inset-x-3 bottom-4 font-display text-left text-sm font-semibold text-white" id="mobile-title">{{ slide.title|default:"Sarlavha shu yerda ko'rinadi" }}</span>
+                    </div></div>
+                </div>
+            </section>
+            <section class="rounded-2xl border border-wood/10 bg-white p-5 shadow-sm sm:p-7">
+                <h2 class="mb-5 font-display text-xl font-semibold">Matn va tugma</h2>
+                <div class="grid gap-4">
+                    {% for field in form %}
+                    {% if field.name == 'title' or field.name == 'subtitle' or field.name == 'badge_text' or field.name == 'button_text' or field.name == 'button_url' or field.name == 'order' %}
+                    <div class="panel-field"><label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-semibold">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<p class="mt-1 text-xs text-red-700">{{ error }}</p>{% endfor %}</div>
+                    {% endif %}
+                    {% endfor %}
+                    <label class="flex min-h-12 items-center gap-3 rounded-xl bg-sand px-4 text-sm font-semibold">{{ form.is_active }} Saytda faol ko'rinsin{% for error in form.is_active.errors %}<span class="text-xs text-red-700">{{ error }}</span>{% endfor %}</label>
+                </div>
+            </section>
+        </div>
+        <aside class="space-y-6">
+            <section class="rounded-2xl border border-wood/10 bg-white p-5 shadow-sm sm:p-7">
+                <h2 class="mb-4 font-display text-xl font-semibold">Sayt ko'rinishi</h2>
+                <div class="preview-frame relative aspect-[16/9] overflow-hidden rounded-2xl bg-gradient-to-br from-[#A9744F] to-[#1B4332] text-white">
+                    {% if slide %}<img id="site-preview-image" src="{{ slide.image_medium.url }}" alt="" class="absolute inset-0 h-full w-full object-cover">{% else %}<img id="site-preview-image" alt="" class="absolute inset-0 hidden h-full w-full object-cover">{% endif %}
+                    <span class="absolute inset-0 bg-gradient-to-r from-[#141c18]/80 via-[#141c18]/45 to-transparent"></span>
+                    <div class="absolute inset-0 flex items-center p-5 sm:p-8"><div class="max-w-[62%]">
+                        <span id="preview-badge" class="mb-2 inline-block rounded-full bg-white/15 px-2.5 py-1 text-[9px] backdrop-blur">{% if slide.badge_text %}{{ slide.badge_text }}{% endif %}</span>
+                        <h3 id="preview-title" class="font-display text-sm font-semibold leading-tight sm:text-xl">{{ slide.title|default:"Sarlavha shu yerda ko'rinadi" }}</h3>
+                        <p id="preview-subtitle" class="mt-2 line-clamp-2 text-[9px] leading-4 text-white/90 sm:text-xs sm:leading-5">{{ slide.subtitle|default:"Izoh shu yerda ko'rinadi." }}</p>
+                        <span id="preview-button" class="mt-3 inline-block rounded-full bg-white px-3 py-1.5 text-[9px] font-semibold text-forest">{{ slide.button_text|default:"Katalogni ko'rish" }}</span>
+                    </div></div>
+                </div>
+                <p class="mt-3 text-xs text-forest-dark/50">Preview taxminiy; yakuniy ko'rinish ekran o'lchami va tanlangan rasmga bog'liq.</p>
+            </section>
+            <div id="upload-progress-wrap" class="hidden rounded-2xl border border-wood/10 bg-white p-5 shadow-sm" aria-live="polite"><div class="flex justify-between text-sm"><span id="upload-progress-label">Rasm yuklanmoqda…</span><span id="upload-progress-value">0%</span></div><div class="mt-3 h-2 overflow-hidden rounded-full bg-sand"><div id="upload-progress" class="h-full w-0 bg-forest transition-[width]"></div></div></div>
+            <div id="upload-error" class="hidden rounded-xl bg-red-50 p-4 text-sm text-red-800" role="alert"></div>
+            <div class="sticky bottom-3 flex flex-col gap-3 rounded-2xl border border-wood/10 bg-[#FBF8F3]/95 p-3 backdrop-blur sm:flex-row sm:justify-end">
+                <a href="{% url 'panel:hero_slide_list' %}" class="flex min-h-12 items-center justify-center rounded-xl border border-wood/20 bg-white px-5 font-semibold">Bekor qilish</a>
+                <button id="save-hero-slide" class="min-h-12 rounded-xl bg-forest px-7 font-semibold text-white hover:bg-forest-light">Bannerni saqlash</button>
+            </div>
+        </aside>
+    </div>
+</form>
+{% endblock %}
+{% block extra_js %}
+<script>
+(() => {
+    const form = document.getElementById('hero-slide-form');
+    const mainInput = document.getElementById('id_image');
+    const mobileInput = document.getElementById('id_image_mobile');
+    const previewImage = document.getElementById('site-preview-image');
+    const desktopPreview = document.getElementById('desktop-preview');
+    const mobilePreview = document.getElementById('mobile-preview');
+    const titleInput = document.getElementById('id_title');
+    const subtitleInput = document.getElementById('id_subtitle');
+    const badgeInput = document.getElementById('id_badge_text');
+    const buttonInput = document.getElementById('id_button_text');
+    const focusX = document.getElementById('id_focus_x');
+    const focusY = document.getElementById('id_focus_y');
+    const picker = document.getElementById('focus-picker');
+    const text = (id, value, fallback) => { const node = document.getElementById(id); if (node) node.textContent = value || fallback; };
+    const showImage = (input, targets) => {
+        if (!input || !input.files.length) return;
+        const url = URL.createObjectURL(input.files[0]);
+        targets.forEach((image) => { if (image) { image.src = url; image.classList.remove('hidden'); } });
+    };
+    mainInput?.addEventListener('change', () => showImage(mainInput, [previewImage, desktopPreview]));
+    mobileInput?.addEventListener('change', () => showImage(mobileInput, [mobilePreview]));
+    titleInput?.addEventListener('input', () => { text('preview-title', titleInput.value, 'Sarlavha shu yerda ko‘rinadi'); text('mobile-title', titleInput.value, 'Sarlavha shu yerda ko‘rinadi'); });
+    subtitleInput?.addEventListener('input', () => text('preview-subtitle', subtitleInput.value, 'Izoh shu yerda ko‘rinadi.'));
+    badgeInput?.addEventListener('input', () => { const node = document.getElementById('preview-badge'); node.textContent = badgeInput.value; node.classList.toggle('hidden', !badgeInput.value); });
+    buttonInput?.addEventListener('input', () => text('preview-button', buttonInput.value, 'Katalogni ko‘rish'));
+    picker?.addEventListener('click', (event) => {
+        const bounds = picker.getBoundingClientRect();
+        const x = Math.round(Math.max(0, Math.min(100, (event.clientX - bounds.left) / bounds.width * 100)));
+        const y = Math.round(Math.max(0, Math.min(100, (event.clientY - bounds.top) / bounds.height * 100)));
+        focusX.value = x; focusY.value = y;
+        const marker = document.getElementById('focus-marker');
+        marker.style.left = `${x}%`; marker.style.top = `${y}%`;
+        if (desktopPreview) desktopPreview.style.objectPosition = `${x}% ${y}%`;
+        if (previewImage) previewImage.style.objectPosition = `${x}% ${y}%`;
+        if (mobilePreview) mobilePreview.style.objectPosition = `${x}% ${y}%`;
+    });
+
+    form?.addEventListener('submit', (event) => {
+        event.preventDefault();
+        if (!form.reportValidity()) return;
+        const progressWrap = document.getElementById('upload-progress-wrap');
+        const progress = document.getElementById('upload-progress');
+        const progressValue = document.getElementById('upload-progress-value');
+        const progressLabel = document.getElementById('upload-progress-label');
+        const error = document.getElementById('upload-error');
+        const saveButton = document.getElementById('save-hero-slide');
+        const request = new XMLHttpRequest();
+        request.open('POST', form.action || window.location.href);
+        request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        progressWrap.classList.remove('hidden');
+        error.classList.add('hidden');
+        saveButton.disabled = true;
+        saveButton.textContent = 'Yuklanmoqda…';
+        request.upload.addEventListener('progress', (progressEvent) => {
+            if (!progressEvent.lengthComputable) return;
+            const percent = Math.round(progressEvent.loaded / progressEvent.total * 100);
+            progress.style.width = `${percent}%`;
+            progressValue.textContent = `${percent}%`;
+            if (percent === 100) progressLabel.textContent = 'Server rasmni qayta ishlayapti…';
+        });
+        request.addEventListener('load', () => {
+            if (request.status >= 200 && request.status < 400 && new URL(request.responseURL).pathname !== window.location.pathname) {
+                window.location.assign(request.responseURL);
+                return;
+            }
+            document.open();
+            document.write(request.responseText);
+            document.close();
+        });
+        request.addEventListener('error', () => {
+            error.textContent = "Yuklashda xatolik yuz berdi. Internet aloqasini tekshirib, qayta urinib ko'ring.";
+            error.classList.remove('hidden');
+            saveButton.disabled = false;
+            saveButton.textContent = 'Bannerni saqlash';
+        });
+        request.send(new FormData(form));
+    });
+})();
+</script>
+{% endblock %}

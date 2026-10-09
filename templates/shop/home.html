@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% load static shop_extras ui %}
+
+{% block title %}{{ SITE_NAME }} — mebel va uy uchun yechimlar{% endblock %}
+{% block meta_description %}Mebel kolleksiyalarini ko'ring, o'zingizga mos materialni tanlang va sotuvchi bilan bog'laning.{% endblock %}
+{% block og_title %}{{ SITE_NAME }} — mebel va uy uchun yechimlar{% endblock %}
+
+{% block extra_head %}
+    {% if hero_slides %}
+        {% with first=hero_slides.0 %}
+        <link rel="preload" as="image" href="{{ first.image_medium.url }}" imagesrcset="{{ first.image_medium.url }} {{ first.image_medium.width }}w, {{ first.image.url }} {{ first.image.width }}w" imagesizes="100vw" fetchpriority="high" media="(min-width: 769px)">
+        {% if first.image_mobile %}<link rel="preload" as="image" href="{{ first.image_mobile_medium.url }}" imagesrcset="{{ first.image_mobile_medium.url }} {{ first.image_mobile_medium.width }}w, {{ first.image_mobile.url }} {{ first.image_mobile.width }}w" imagesizes="100vw" fetchpriority="high" media="(max-width: 768px)">
+        {% else %}<link rel="preload" as="image" href="{{ first.image_medium.url }}" imagesrcset="{{ first.image_medium.url }} {{ first.image_medium.width }}w, {{ first.image.url }} {{ first.image.width }}w" imagesizes="100vw" fetchpriority="high" media="(max-width: 768px)">{% endif %}
+        {% endwith %}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<section id="home-hero" class="home-hero relative overflow-hidden {% if hero_slides %}bg-[#1F2421]{% else %}hero-fallback{% endif %}" aria-label="Bosh sahifa">
+    {% if hero_slides %}
+    <div class="hero-carousel absolute inset-0" data-carousel aria-roledescription="carousel" aria-label="Bosh sahifa bannerlari" tabindex="0">
+        {% for slide in hero_slides %}
+        <article class="hero-slide absolute inset-0 {% if forloop.first %}is-active{% endif %}" data-slide {% if forloop.first %}data-direction="next"{% endif %} role="group" aria-roledescription="slide" aria-label="{{ forloop.counter }} / {{ hero_slides|length }}" {% if not forloop.first %}aria-hidden="true" inert{% endif %}>
+            <picture class="absolute inset-0 block">
+                {% if slide.image_mobile %}
+                <source media="(max-width: 768px)" srcset="{{ slide.image_mobile_medium.url }} {{ slide.image_mobile_medium.width }}w, {{ slide.image_mobile.url }} {{ slide.image_mobile.width }}w" sizes="100vw">
+                {% endif %}
+                <img
+                    src="{{ slide.image_medium.url }}"
+                    srcset="{{ slide.image_medium.url }} {{ slide.image_medium.width }}w, {{ slide.image.url }} {{ slide.image.width }}w"
+                    sizes="100vw"
+                    alt="{{ slide.title }}"
+                    width="{{ slide.image.width }}"
+                    height="{{ slide.image.height }}"
+                    class="hero-image absolute inset-0 h-full w-full object-cover"
+                    style="object-position: {{ slide.focus_x }}% {{ slide.focus_y }}%"
+                    {% if forloop.first %}fetchpriority="high" decoding="async"{% else %}loading="lazy" decoding="async"{% endif %}>
+            </picture>
+            <div class="hero-overlay absolute inset-0" aria-hidden="true"></div>
+            <div class="relative z-10 mx-auto flex h-full max-w-7xl items-end px-5 pb-14 pt-32 sm:px-8 sm:pb-14 lg:items-center lg:px-10 lg:pb-20 lg:pt-28">
+                <div class="hero-copy text-white">
+                    {% if slide.badge_text %}<span data-enter class="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white shadow-sm backdrop-blur-md"><span class="h-1.5 w-1.5 rounded-full bg-white"></span>{{ slide.badge_text }}</span>{% endif %}
+                    <h1 data-enter class="hero-title font-display text-white">{{ slide.title }}</h1>
+                    <p data-enter class="hero-subtitle mt-4 text-white/90">{{ slide.subtitle }}</p>
+                    <div data-enter class="hero-actions mt-7 flex flex-col gap-3 sm:flex-row">
+                        <a href="{{ slide.button_url }}" class="hero-primary inline-flex min-h-[52px] w-full items-center justify-center gap-3 rounded-full bg-white px-7 text-base font-semibold text-[#1B4332] shadow-xl transition hover:-translate-y-0.5 hover:bg-[#FBF8F3] sm:w-auto">
+                            {{ slide.button_text|default:"Katalogni ko'rish" }}
+                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 12h15m-6-6 6 6-6 6"/></svg>
+                        </a>
+                        {% if SELLER_PHONE %}<a href="tel:{{ SELLER_PHONE|phone_tel }}" class="inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-full border border-white/75 bg-white/10 px-7 text-base font-semibold text-white backdrop-blur-md transition hover:bg-white/20 sm:w-auto">
+                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5.75A2.75 2.75 0 0 1 5.75 3h1.5c.7 0 1.3.48 1.46 1.16l.65 2.78c.13.55-.08 1.12-.53 1.46L7.4 9.43a14.5 14.5 0 0 0 7.17 7.17l1.03-1.43c.34-.45.91-.66 1.46-.53l2.78.65c.68.16 1.16.76 1.16 1.46v1.5A2.75 2.75 0 0 1 18.25 21h-.5C10.16 21 3 13.84 3 6.25v-.5Z"/></svg>
+                            Qo'ng'iroq qilish
+                        </a>{% endif %}
+                    </div>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="hero-fallback-shape hero-fallback-shape-one" aria-hidden="true"></div>
+    <div class="hero-fallback-shape hero-fallback-shape-two" aria-hidden="true"></div>
+    <div class="relative z-10 mx-auto flex min-h-[78svh] max-w-7xl items-end px-5 pb-20 pt-32 sm:px-8 lg:min-h-[640px] lg:items-center lg:px-10 lg:py-32">
+        <div class="max-w-2xl">
+            {% if request.user.is_authenticated and request.user.is_staff %}<a class="mb-6 inline-flex rounded-full border border-[#1B4332]/15 bg-white/70 px-4 py-2 text-sm font-semibold text-[#1B4332] shadow-sm backdrop-blur" href="{% url 'panel:hero_slide_add' %}">Banner qo'shing <span aria-hidden="true" class="ml-2">↗</span></a>{% endif %}
+            <p class="mb-5 text-sm font-semibold uppercase tracking-[.18em] text-[#A9744F]">Uy uchun mebel</p>
+            <h1 class="text-balance font-display text-[38px] font-semibold leading-[1.08] text-[#1F2421] sm:text-6xl">{{ homepage_settings.hero_title|default:"Uyingizga mos mebel" }}</h1>
+            <p class="mt-6 max-w-xl text-base leading-7 text-[#1F2421]/75 sm:text-lg sm:leading-8">{{ homepage_settings.hero_subtitle|default:"O'lcham, material va ko'rinishni tanlang — qolganini birga kelishamiz." }}</p>
+            <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+                <a href="{% url 'shop:catalog' %}" class="inline-flex min-h-[52px] items-center justify-center gap-3 rounded-full bg-[#1B4332] px-7 text-base font-semibold text-white shadow-lg transition hover:bg-[#2F6B4F]">Katalogni ko'rish <span aria-hidden="true">→</span></a>
+                {% if SELLER_PHONE %}<a href="tel:{{ SELLER_PHONE|phone_tel }}" class="inline-flex min-h-[52px] items-center justify-center rounded-full border border-[#1B4332]/25 bg-white/60 px-7 text-base font-semibold text-[#1B4332] backdrop-blur">Qo'ng'iroq qilish</a>{% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if hero_slides|length > 1 %}
+    <div class="hero-controls absolute inset-x-5 bottom-3 z-20 mx-auto flex max-w-7xl items-center justify-between sm:inset-x-8 lg:bottom-8 lg:px-2">
+        <div class="flex items-center gap-3" role="group" aria-label="Slayd tanlash">
+            {% for slide in hero_slides %}
+            <button type="button" class="hero-indicator {% if forloop.first %}is-active{% endif %}" data-indicator="{{ forloop.counter0 }}" aria-label="{{ forloop.counter }}-slaydga o'tish" {% if forloop.first %}aria-current="true"{% endif %}><span></span></button>
+            {% endfor %}
+        </div>
+        <div class="hero-arrow-group items-center gap-3">
+            <span class="hero-counter" data-carousel-count aria-live="off">01 / {{ hero_slides|length|stringformat:"02d" }}</span>
+            <button type="button" class="hero-arrow" data-carousel-prev aria-label="Oldingi slayd"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M20 12H5m6 6-6-6 6-6"/></svg></button>
+            <button type="button" class="hero-arrow" data-carousel-next aria-label="Keyingi slayd"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 12h15m-6-6 6 6-6 6"/></svg></button>
+        </div>
+    </div>
+    {% endif %}
+</section>
+
+<section class="relative z-20 mx-auto -mt-10 max-w-7xl px-5 sm:px-8 lg:px-10" aria-label="Xizmatlar haqida">
+    <div class="trust-card grid grid-cols-2 gap-x-4 gap-y-6 rounded-[20px] bg-white p-5 sm:p-7 lg:grid-cols-4 lg:gap-6 lg:px-8 lg:py-7">
+        <article class="flex items-start gap-3 sm:gap-4">
+            <span class="trust-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 20h16M6 17l11-11 2 2L8 19H6v-2Zm9-9 2 2"/></svg></span>
+            <div><h2 class="text-sm font-semibold leading-5 text-[#1F2421] sm:text-base">{{ homepage_settings.usp_1_title|default:"O'lchamga moslab yasaymiz" }}</h2><p class="mt-1 hidden text-sm leading-5 text-[#1F2421]/60 sm:block">{{ homepage_settings.usp_1_text|default:"Loyihani xonangiz o'lchamiga moslang." }}</p></div>
+        </article>
+        <article class="flex items-start gap-3 sm:gap-4">
+            <span class="trust-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3 21 8l-9 5-9-5 9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5"/></svg></span>
+            <div><h2 class="text-sm font-semibold leading-5 text-[#1F2421] sm:text-base">{{ homepage_settings.usp_2_title|default:"Material tanlash imkoniyati" }}</h2><p class="mt-1 hidden text-sm leading-5 text-[#1F2421]/60 sm:block">{{ homepage_settings.usp_2_text|default:"Mavjud variantlar va narxlarni solishtiring." }}</p></div>
+        </article>
+        <article class="flex items-start gap-3 sm:gap-4">
+            <span class="trust-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7h11v11H3zM14 11h4l3 3v4h-7zM7 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm11 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/></svg></span>
+            <div><h2 class="text-sm font-semibold leading-5 text-[#1F2421] sm:text-base">{{ homepage_settings.usp_3_title|default:"Yetkazib berish va o'rnatish" }}</h2><p class="mt-1 hidden text-sm leading-5 text-[#1F2421]/60 sm:block">{{ homepage_settings.usp_3_text|default:"Shartlarni sotuvchi bilan kelishib oling." }}</p></div>
+        </article>
+        <article class="flex items-start gap-3 sm:gap-4">
+            <span class="trust-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3 19 6v5c0 4.5-3 7.5-7 10-4-2.5-7-5.5-7-10V6l7-3Zm-3 9 2 2 4-4"/></svg></span>
+            <div><h2 class="text-sm font-semibold leading-5 text-[#1F2421] sm:text-base">{{ homepage_settings.usp_4_title|default:"Kafolat" }}</h2><p class="mt-1 hidden text-sm leading-5 text-[#1F2421]/60 sm:block">{{ homepage_settings.usp_4_text|default:"Kafolat shartlarini sotuvchidan aniqlang." }}</p></div>
+        </article>
+    </div>
+</section>
+
+{% if categories %}
+<section class="homepage-section mx-auto max-w-7xl px-5 py-14 sm:px-8 lg:px-10 lg:py-28" data-reveal>
+    <div class="section-heading mb-8 sm:mb-10">
+        <p class="mb-3 text-xs font-semibold uppercase tracking-[.18em] text-[#A9744F]">Xonalar uchun yechimlar</p>
+        <div class="flex flex-wrap items-end justify-between gap-4">
+            <div><h2 class="font-display text-3xl font-semibold text-[#1F2421] sm:text-4xl">Kategoriyalar</h2><span class="section-underline"></span></div>
+            <p class="max-w-sm text-sm leading-6 text-[#1F2421]/60">O'zingizga kerakli mebel turini tanlab, mavjud variantlarni ko'ring.</p>
+        </div>
+    </div>
+    <div class="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+        {% for category in categories %}
+        <a href="{% url 'shop:catalog_category' category.slug %}" class="category-tile group relative aspect-[4/3] overflow-hidden rounded-[20px] bg-gradient-to-br from-[#D9C9AA] via-[#A9744F] to-[#1B4332] shadow-[0_10px_30px_rgba(31,36,33,.08)]" data-reveal>
+            {% if category.image %}<img src="{{ category.image.url }}" alt="{{ category.name }}" width="800" height="600" class="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy">
+            {% else %}<span class="category-placeholder" aria-hidden="true"><svg class="h-16 w-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.1"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M5 10V6h14v4m-12 0v8m10-8v8M4 18h16"/></svg></span>{% endif %}
+            <span class="absolute inset-0 bg-gradient-to-t from-[#1F2421]/85 via-[#1F2421]/15 to-transparent"></span>
+            <span class="absolute bottom-0 left-0 right-0 flex items-end justify-between p-4 sm:p-5"><span><span class="block font-display text-base font-semibold text-white sm:text-xl">{{ category.name }}</span><span class="mt-1 block text-xs text-white/75">{{ category.active_furniture_count }} ta mebel</span></span><span class="category-arrow" aria-hidden="true">↗</span></span>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% if new_furniture %}
+<section class="homepage-section border-y border-[#1F2421]/[.04] bg-white py-14 sm:py-16 lg:py-28" data-reveal>
+    <div class="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
+        <div class="mb-8 flex items-end justify-between gap-4 sm:mb-10">
+            <div><p class="mb-3 text-xs font-semibold uppercase tracking-[.18em] text-[#A9744F]">Yaqinda qo'shilgan</p><h2 class="font-display text-3xl font-semibold text-[#1F2421] sm:text-4xl">Yangi mebellar</h2><span class="section-underline"></span></div>
+            <a href="{% url 'shop:catalog' %}" class="hidden items-center gap-2 pb-1 text-sm font-semibold text-[#1B4332] hover:text-[#A9744F] sm:inline-flex">Hammasini ko'rish <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+            {% for item in new_furniture %}
+            <article class="home-product-card group overflow-hidden rounded-[20px] bg-[#FBF8F3]">
+                <a href="{% url 'shop:furniture_detail' item.slug %}" class="block">
+                    <div class="relative aspect-[4/3] overflow-hidden rounded-[20px] bg-gradient-to-br from-[#F5EFE4] to-[#D9C9AA]">
+                        {% with images=item.images.all %}
+                            {% if images %}<img src="{{ images.0.thumb_url }}" alt="{{ item.name }}" width="800" height="600" class="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.03] {% if images|length > 1 %}group-hover:opacity-0{% endif %}" loading="lazy">
+                                {% if images|length > 1 %}<img src="{{ images.1.thumb_url }}" alt="" width="800" height="600" class="absolute inset-0 h-full w-full object-cover opacity-0 transition duration-700 group-hover:scale-[1.03] group-hover:opacity-100" loading="lazy">{% endif %}
+                            {% else %}<span class="category-placeholder text-[#A9744F]/60" aria-hidden="true"><svg class="h-16 w-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.1"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M5 10V6h14v4m-12 0v8m10-8v8M4 18h16"/></svg></span>{% endif %}
+                        {% endwith %}
+                    </div>
+                    <div class="px-1 pb-2 pt-4 sm:px-2">
+                        <p class="text-xs font-medium text-[#A9744F]">{{ item.category.name }}</p>
+                        <h3 class="mt-1 line-clamp-2 min-h-12 font-display text-base font-semibold leading-6 text-[#1F2421] sm:text-lg">{{ item.name }}</h3>
+                        <p class="mt-2 text-xs text-[#1F2421]/55 sm:text-sm">{{ item.get_dimensions_display }}</p>
+                        <p class="mt-3 font-semibold text-[#1B4332]">{% if item.min_price %}{{ item.min_price|som }} <span class="text-xs font-normal text-[#1F2421]/55">dan</span>{% else %}Narxni aniqlang{% endif %}</p>
+                    </div>
+                </a>
+            </article>
+            {% endfor %}
+        </div>
+        <a href="{% url 'shop:catalog' %}" class="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-[#1B4332]/20 text-sm font-semibold text-[#1B4332] sm:hidden">Hammasini ko'rish <span aria-hidden="true">→</span></a>
+    </div>
+</section>
+{% endif %}
+
+<section id="how-it-works" class="homepage-section mx-auto max-w-7xl px-5 py-14 sm:px-8 lg:px-10 lg:py-28" data-reveal>
+    <div class="mb-10 text-center sm:mb-14">
+        <p class="mb-3 text-xs font-semibold uppercase tracking-[.18em] text-[#A9744F]">Oddiy va tushunarli</p>
+        <h2 class="font-display text-3xl font-semibold text-[#1F2421] sm:text-4xl">Qanday ishlaydi?</h2><span class="section-underline mx-auto"></span>
+        <p class="mx-auto mt-4 max-w-xl text-sm leading-6 text-[#1F2421]/60 sm:text-base">Kerakli mebelni toping, variantlarni ko'rib chiqing va savollaringizni bizga yuboring.</p>
+    </div>
+    <div class="how-steps grid gap-5 md:grid-cols-3 md:gap-8">
+        <article class="how-step" data-reveal><span class="how-step-number">01</span><span class="how-step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path stroke-linecap="round" d="m16 16 5 5"/></svg></span><div><h3 class="font-display text-xl font-semibold">Mebelni tanlang</h3><p class="mt-2 text-sm leading-6 text-[#1F2421]/60">Katalogdan xona va ehtiyojingizga mos modelni toping.</p></div></article>
+        <article class="how-step" data-reveal><span class="how-step-number">02</span><span class="how-step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m12 3 9 5-9 5-9-5 9-5Zm-9 9 9 5 9-5m-18 4 9 5 9-5"/></svg></span><div><h3 class="font-display text-xl font-semibold">Variantni belgilang</h3><p class="mt-2 text-sm leading-6 text-[#1F2421]/60">Material va qo'shimcha detallarni tanlab, narxni ko'ring.</p></div></article>
+        <article class="how-step" data-reveal><span class="how-step-number">03</span><span class="how-step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5.5A2.5 2.5 0 0 1 5.5 3h13A2.5 2.5 0 0 1 21 5.5v13a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 18.5v-13ZM7 8h10M7 12h6m-6 4h4"/></svg></span><div><h3 class="font-display text-xl font-semibold">Bog'laning</h3><p class="mt-2 text-sm leading-6 text-[#1F2421]/60">Telefon raqamingizni qoldiring — sotuvchi siz bilan bog'lanadi.</p></div></article>
+    </div>
+</section>
+
+<section id="contact" class="mx-auto max-w-7xl px-5 pb-14 pt-2 sm:px-8 sm:pb-16 lg:px-10 lg:pb-28" data-reveal>
+    {% with first=hero_slides.0 %}
+    <div class="contact-banner relative isolate overflow-hidden rounded-[20px] bg-[#1B4332] px-6 py-12 text-white shadow-[0_10px_30px_rgba(31,36,33,.08)] sm:px-10 sm:py-16 lg:px-16">
+        {% if homepage_settings.hero_image %}<img src="{{ homepage_settings.hero_image_medium.url }}" alt="" width="1280" height="720" class="absolute inset-0 -z-20 h-full w-full object-cover" loading="lazy">
+        {% elif first %}<img src="{{ first.image_medium.url }}" alt="" width="1280" height="720" class="absolute inset-0 -z-20 h-full w-full object-cover" loading="lazy">{% endif %}
+        <span class="absolute inset-0 -z-10 bg-[#1F2421]/80" aria-hidden="true"></span>
+        <div class="relative z-10 mx-auto max-w-3xl text-center">
+            <p class="mb-3 text-xs font-semibold uppercase tracking-[.18em] text-white/75">Bog'lanish</p>
+            <h2 class="font-display text-3xl font-semibold text-white sm:text-5xl">Savolingiz bormi?</h2>
+            <p class="mx-auto mt-4 max-w-2xl text-sm leading-6 text-white/85 sm:text-lg sm:leading-8">Mebel, o'lcham yoki material haqida so'rang — sizga qulay usulda bog'laning.</p>
+            <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+                {% if SELLER_PHONE %}<a href="tel:{{ SELLER_PHONE|phone_tel }}" class="inline-flex min-h-[52px] items-center justify-center rounded-full bg-white px-7 font-semibold text-[#1B4332] transition hover:bg-[#FBF8F3]">{{ SELLER_PHONE|phone_pretty }}</a>{% endif %}
+                {% if TELEGRAM_URL %}<a href="{{ TELEGRAM_URL }}" target="_blank" rel="noopener noreferrer" class="inline-flex min-h-[52px] items-center justify-center rounded-full border border-white/65 bg-white/10 px-7 font-semibold text-white backdrop-blur transition hover:bg-white/20">Telegram orqali yozish</a>{% endif %}
+            </div>
+        </div>
+    </div>
+    {% endwith %}
+</section>
+{% endblock %}
+
+{% block extra_js %}<script src="{% static 'js/home.js' %}" defer></script>{% endblock %}
