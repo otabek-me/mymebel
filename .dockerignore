@@ -1,0 +1,17 @@
+.git
+.claude
+.vscode
+.idea
+.env
+.env.*
+db.sqlite3
+db.sqlite3-journal
+media
+staticfiles
+node_modules
+venv
+.venv
+__pycache__
+*.py[cod]
+*.log
+qa_screenshots
